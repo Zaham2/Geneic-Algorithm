@@ -14,6 +14,7 @@ class knapsack {
     int popSize;
     int[][] theBigArray;
     Map<Integer, Pair> map;
+    int[] fitness;
 
 
     class Pair {
@@ -53,9 +54,7 @@ class knapsack {
 
             }
             this.theBigArray = initializeBigArray();
-            printArray(theBigArray);
-            printMap(map);
-            calculateFitness();
+
         }
 
     }
@@ -73,12 +72,12 @@ class knapsack {
         }
     }
 
-    public void printArray(int[][] arr) {
+    public void printArray() {
 
         System.out.println("Printing population");
         for (int i = 0; i < popSize; i++) {
             for (int j = 0; j < nItems; j++) {
-                System.out.print(arr[i][j] + " ");
+                System.out.print(theBigArray[i][j] + " ");
             }
             System.out.println();
 
@@ -86,10 +85,10 @@ class knapsack {
         }
     }
 
-    public void printMap(Map m) {
+    public void printMap() {
         System.out.println("Printing map");
-        for (int i = 0; i < m.size(); i++) {
-            Pair p = (Pair) m.get(i);
+        for (int i = 0; i < map.size(); i++) {
+            Pair p = (Pair) map.get(i);
             System.out.println(i + " :  " + p.weight + " " + p.benefit);
         }
 
@@ -118,7 +117,7 @@ class knapsack {
 
     public int calculateFitness() {
 
-        int[] fitness = new int[popSize];  //  --->TEST INITIAL VALUES IF ERROR HAPPENS!!
+        fitness = new int[popSize];  //  --->TEST INITIAL VALUES IF ERROR HAPPENS!!
         int[] weights = new int[popSize];
 
         for (int i = 0; i < popSize; i++) {
@@ -137,19 +136,70 @@ class knapsack {
                 fitness[i] = -1;
         }
 
-        this.printFitness(fitness);
         return 0;
     }
 
-    public void printFitness(int[] arr) {
+    public void printFitness() {
 
         System.out.println("Printing fitness");
 
-        for (int i : arr)
+        for (int i : fitness)
             System.out.println(i);
     }
 
+    //for swapping 2 rows in theBigArray
+    public void swapBigArray(int x1, int x2) {
+
+        int[] temp = new int[nItems];
+        for (int j = 0; j < temp.length; j++) {     //this loop is to set theBigArr[i] into temp
+            temp[j] = theBigArray[x1][j];
+        }
+
+
+        //arr[j-1] == theBigArray[x1][j]
+        //arr[j] ==   theBigArray[x2][j]
+
+        //now for the swap
+        for (int j = 0; j < nItems; j++) {
+
+            theBigArray[x1][j] = theBigArray[x2][j];
+            theBigArray[x2][j] = temp[j];
+        }
+
+
+    }
+
+    public void selection() {
+
+
+//        for (int i = 0; i < fitness.length; i++) {
+//            for (int j = 1; j < (fitness.length - i); j++) {
+//                if (fitness[j - 1] > fitness[j]) {
+//                    swapBigArray(j, j - 1);
+//                }
+//            }
+
+        int n = fitness.length;
+
+        // One by one move boundary of unsorted subarray
+        for (int i = 0; i < n - 1; i++) {
+            // Find the minimum element in unsorted array
+            int min_idx = i;
+            for (int j = i + 1; j < n; j++)
+                if (fitness[j] < fitness[min_idx])
+                    min_idx = j;
+
+            // Swap the found minimum element with the first
+            // element
+            swapBigArray(min_idx, i);
+        }
+        calculateFitness();
+        printArray();
+        printFitness();
+    }
+
 }
+
 
 public class Home {
 
@@ -157,9 +207,16 @@ public class Home {
 
         knapsack k = new knapsack();
         k.execute();
+        k.printArray();
+        k.printMap();
+
         //now we have initialized our data
         //and we want to start crossing over its members
-
+        k.calculateFitness();
+        System.out.println();
+        System.out.println("NOW FOR SELECTION");
+        System.out.println();
+        k.selection();
 
     }
 }
