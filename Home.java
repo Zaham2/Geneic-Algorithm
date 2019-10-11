@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Random;
 
 class knapsack {
 
@@ -15,6 +16,7 @@ class knapsack {
     int[][] theBigArray;
     Map<Integer, Pair> map;
     int[] fitness;
+    int biggest1, biggest2;
 
 
     class Pair {
@@ -42,7 +44,8 @@ class knapsack {
             theBigArray = new int[nItems][popSize];
             nItems = s.nextInt();
             size = s.nextInt();
-            popSize = (int) (Math.random() * 10 + 2);
+//            popSize = (int) (Math.random() * 10 + 2);  //This is the initial population size
+            popSize = 10;
             items = new Pair[nItems];
             map = new HashMap<Integer, Pair>();
 
@@ -169,33 +172,114 @@ class knapsack {
 
     }
 
+    public int getRandomNumber(int n) {
+        return (int) (Math.random() * n);
+    }
+
     public void selection() {
 
+        biggest1 = 0;
+        biggest2 = 0;
 
-//        for (int i = 0; i < fitness.length; i++) {
-//            for (int j = 1; j < (fitness.length - i); j++) {
-//                if (fitness[j - 1] > fitness[j]) {
-//                    swapBigArray(j, j - 1);
-//                }
-//            }
+        for (int i = 0; i < fitness.length; i++) {
 
-        int n = fitness.length;
-
-        // One by one move boundary of unsorted subarray
-        for (int i = 0; i < n - 1; i++) {
-            // Find the minimum element in unsorted array
-            int min_idx = i;
-            for (int j = i + 1; j < n; j++)
-                if (fitness[j] < fitness[min_idx])
-                    min_idx = j;
-
-            // Swap the found minimum element with the first
-            // element
-            swapBigArray(min_idx, i);
+            if (fitness[i] > fitness[biggest1]) {
+                biggest1 = i;
+            }
         }
-        calculateFitness();
-        printArray();
-        printFitness();
+
+        for (int i = 0; i < fitness.length; i++) {
+            if (fitness[i] > fitness[biggest2] && (i != biggest1)) {
+                biggest2 = i;
+            }
+        }
+
+        System.out.println("Biggest 1 value = " + fitness[biggest1] + " at " + biggest1);
+        System.out.println("Biggest 2 value = " + fitness[biggest2] + " at " + biggest2);
+        System.out.println();
+
+        //now I have the 2 biggest fitness indices
+    }
+
+    public int calculateFitnessChromosome(int[] arr) {
+
+        int chromFitness = 0;
+        int chromWeight = 0;
+        for (int i = 0; i < arr.length; i++) {
+
+            chromFitness += (map.get(i).benefit) * arr[i];
+            chromWeight += (map.get(i).weight) * arr[i];
+        }
+
+        if (chromWeight > size)
+            return -1;
+
+        return chromFitness;
+    }
+
+    public void swap(int a, int b) {
+        int temp = a;
+        a = b;
+        b = a;
+    }
+
+
+    public void crossing() {
+
+        int randomGene = getRandomNumber(nItems);
+
+        int[] chrom1 = new int[nItems];
+        int[] chrom2 = new int[nItems];
+
+        for (int i = 0; i < nItems; i++) {
+            chrom1[i] = theBigArray[biggest1][i];
+            chrom2[i] = theBigArray[biggest2][i];
+        }
+
+
+        System.out.println("Chrom1 before swapping ");
+        for (int i : chrom1) {
+            System.out.print(i + " ");
+        }
+
+        System.out.println();
+        System.out.println("Chrom2 before swapping ");
+        for (int i : chrom2) {
+            System.out.print(i + " ");
+        }
+
+        System.out.println();
+        System.out.println("RandomGene : "+randomGene);
+        System.out.println();
+        int c = randomGene;
+        while (c < nItems) {
+            System.out.println(c);
+//            swap(chrom1[c], chrom2[c]);
+            int temp = chrom1[c];
+            chrom1[c] = chrom2[c];
+            chrom2[c] = temp;
+            c++;
+        }
+
+        System.out.println();
+        System.out.println("Chrom1 after swapping ");
+        for (int i : chrom1) {
+            System.out.print(i + " ");
+        }
+
+        System.out.println();
+        System.out.println("Chrom2 after swapping ");
+        for (int i : chrom2) {
+            System.out.print(i + " ");
+        }
+    }
+
+    public void mutate() {
+
+    }
+
+    public void reInsert() {
+
     }
 
 }
@@ -213,10 +297,19 @@ public class Home {
         //now we have initialized our data
         //and we want to start crossing over its members
         k.calculateFitness();
+        k.printFitness();
         System.out.println();
         System.out.println("NOW FOR SELECTION");
         System.out.println();
-        k.selection();
+
+        int numberOfIterations = 1;
+        int c = 0;
+        while (c < numberOfIterations) {
+            k.selection();
+            k.crossing();
+            c++;
+
+        }
 
     }
 }
