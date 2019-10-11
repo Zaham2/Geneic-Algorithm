@@ -12,6 +12,8 @@ class knapsack {
     int size;
     Pair[] items;
     int popSize;
+    int[][] theBigArray;
+    Map<Integer, Pair> map;
 
 
     class Pair {
@@ -26,23 +28,22 @@ class knapsack {
     }
 
     public knapsack() {
-
-        Scanner s = new Scanner(System.in);
-        nTests = s.nextInt();
-        execute();
     }
+
 
     public void execute() {
 
         Scanner s = new Scanner(System.in);
+        nTests = s.nextInt();
+
         for (int i = 0; i < nTests; i++) { //This loop for the number of test cases
 
-            int[][] theBigArray = new int[nItems][popSize];
+            theBigArray = new int[nItems][popSize];
             nItems = s.nextInt();
             size = s.nextInt();
-            popSize = (int) (Math.random() * 10 + 1);
+            popSize = (int) (Math.random() * 10 + 2);
             items = new Pair[nItems];
-            Map<Integer, Pair> map = new HashMap<Integer, Pair>();
+            map = new HashMap<Integer, Pair>();
 
             for (int j = 0; j < nItems; j++) { //This loop is for the current (randomly generated) popSize
                 int x = s.nextInt();
@@ -51,16 +52,30 @@ class knapsack {
                 map.put(j, items[j]);
 
             }
-            theBigArray = initializeBigArray();
-            initPop(theBigArray);
+            this.theBigArray = initializeBigArray();
             printArray(theBigArray);
             printMap(map);
+            calculateFitness();
         }
 
     }
 
+    public void generateRandomPopulation() {
+
+        Scanner s = new Scanner(System.in);
+        popSize = (int) (Math.random() * 100 + 1);
+        for (int j = 0; j < nItems; j++) { //This loop is for the current (randomly generated) popSize
+            int x = s.nextInt();
+            int y = s.nextInt();
+            items[j] = new Pair(x, y);
+            map.put(j, items[j]);
+
+        }
+    }
+
     public void printArray(int[][] arr) {
 
+        System.out.println("Printing population");
         for (int i = 0; i < popSize; i++) {
             for (int j = 0; j < nItems; j++) {
                 System.out.print(arr[i][j] + " ");
@@ -75,11 +90,10 @@ class knapsack {
         System.out.println("Printing map");
         for (int i = 0; i < m.size(); i++) {
             Pair p = (Pair) m.get(i);
-            System.out.println(p.weight + " " + p.benefit);
+            System.out.println(i + " :  " + p.weight + " " + p.benefit);
         }
 
     }
-
 
     public int[][] initializeBigArray() {
 
@@ -96,11 +110,44 @@ class knapsack {
         return theArray;
     }
 
-    // initlize the array contains pop size and number of items --> number of genes in chroms
-    public void initPop(int[][] theArray) {
-
+    public boolean isValid(int num) {
+        if (num <= size)
+            return true;
+        return false;
     }
 
+    public int calculateFitness() {
+
+        int[] fitness = new int[popSize];  //  --->TEST INITIAL VALUES IF ERROR HAPPENS!!
+        int[] weights = new int[popSize];
+
+        for (int i = 0; i < popSize; i++) {
+            fitness[i] = 0;
+            weights[i] = 0;
+        }
+
+        for (int i = 0; i < popSize; i++) {
+
+            for (int j = 0; j < nItems; j++) {
+
+                fitness[i] += this.map.get(j).benefit * this.theBigArray[i][j];
+                weights[i] += map.get(j).weight * theBigArray[i][j];
+            }
+            if (!isValid(weights[i]))
+                fitness[i] = -1;
+        }
+
+        this.printFitness(fitness);
+        return 0;
+    }
+
+    public void printFitness(int[] arr) {
+
+        System.out.println("Printing fitness");
+
+        for (int i : arr)
+            System.out.println(i);
+    }
 
 }
 
@@ -109,10 +156,10 @@ public class Home {
     public static void main(String[] args) {
 
         knapsack k = new knapsack();
+        k.execute();
         //now we have initialized our data
-        //we have a population (theBigArray[popSize][nItems])
-        //  ||===> CORRECT THE ABOVE ARRAY BEFORE CROSSING
         //and we want to start crossing over its members
+
 
     }
 }
