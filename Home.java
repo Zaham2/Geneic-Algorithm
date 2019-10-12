@@ -1,14 +1,12 @@
 
 
+import java.util.*;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Random;
 
 class knapsack {
 
-    int nTests;
+    //    int nTests;
     int nItems;
     int size;
     Pair[] items;
@@ -16,7 +14,8 @@ class knapsack {
     int[][] theBigArray;
     Map<Integer, Pair> map;
     int[] fitness;
-    int biggest1, biggest2;
+    int biggest1, biggest2;  //biggest indices in bigarray
+    int[] chrom1, chrom2;   //the offsprings
 
 
     class Pair {
@@ -37,30 +36,26 @@ class knapsack {
     public void execute() {
 
         Scanner s = new Scanner(System.in);
-        nTests = s.nextInt();
 
-        for (int i = 0; i < nTests; i++) { //This loop for the number of test cases
-
-            theBigArray = new int[nItems][popSize];
-            nItems = s.nextInt();
-            size = s.nextInt();
+        theBigArray = new int[nItems][popSize];
+        nItems = s.nextInt();
+        size = s.nextInt();
 //            popSize = (int) (Math.random() * 10 + 2);  //This is the initial population size
-            popSize = 10;
-            items = new Pair[nItems];
-            map = new HashMap<Integer, Pair>();
+        popSize = 10;
+        items = new Pair[nItems];
+        map = new HashMap<Integer, Pair>();
 
-            for (int j = 0; j < nItems; j++) { //This loop is for the current (randomly generated) popSize
-                int x = s.nextInt();
-                int y = s.nextInt();
-                items[j] = new Pair(x, y);
-                map.put(j, items[j]);
-
-            }
-            this.theBigArray = initializeBigArray();
+        for (int j = 0; j < nItems; j++) { //This loop is for the current (randomly generated) popSize
+            int x = s.nextInt();
+            int y = s.nextInt();
+            items[j] = new Pair(x, y);
+            map.put(j, items[j]);
 
         }
+        this.theBigArray = initializeBigArray();
 
     }
+
 
     public void generateRandomPopulation() {
 
@@ -179,7 +174,7 @@ class knapsack {
     public void selection() {
 
         biggest1 = 0;
-        biggest2 = 0;
+        biggest2 = 1;
 
         for (int i = 0; i < fitness.length; i++) {
 
@@ -228,8 +223,8 @@ class knapsack {
 
         int randomGene = getRandomNumber(nItems);
 
-        int[] chrom1 = new int[nItems];
-        int[] chrom2 = new int[nItems];
+        chrom1 = new int[nItems];
+        chrom2 = new int[nItems];
 
         for (int i = 0; i < nItems; i++) {
             chrom1[i] = theBigArray[biggest1][i];
@@ -249,7 +244,7 @@ class knapsack {
         }
 
         System.out.println();
-        System.out.println("RandomGene : "+randomGene);
+        System.out.println("RandomGene : " + randomGene);
         System.out.println();
         int c = randomGene;
         while (c < nItems) {
@@ -274,13 +269,77 @@ class knapsack {
         }
     }
 
+    public void printChromosome(int[] arr) {
+
+        System.out.println();
+        System.out.println("Printing chromosome ");
+        for (int i : arr) {
+            System.out.print(i + " ");
+        }
+    }
+
+
     public void mutate() {
 
+        int geneToFlip = getRandomNumber(nItems);
+        System.out.println("\n\nGene to flip " + geneToFlip);
+
+        if (chrom1[geneToFlip] == 0)
+            chrom1[geneToFlip] = 1;
+        else chrom1[geneToFlip] = 0;
+
+        if (chrom2[geneToFlip] == 0)
+            chrom2[geneToFlip] = 1;
+        else chrom2[geneToFlip] = 0;
     }
 
     public void reInsert() {
 
+        int childFitness1 = calculateFitnessChromosome(chrom1);
+        int childFitness2 = calculateFitnessChromosome(chrom2);
+
+        int randomReplace = getRandomNumber(popSize);
+
+        printChromosome(chrom1);
+        System.out.println();
+        printChromosome(chrom2);
+        System.out.println();
+
+        for (int i = 0; i < nItems; i++) {
+            theBigArray[randomReplace][i] = chrom1[i];
+            theBigArray[randomReplace][i] = chrom2[i];
+        }
+
+        printArray();
+
     }
+    public int printOuput(int n) {
+
+        calculateFitness();
+
+        this.selection();
+        selection();
+
+        System.out.println("Case " + n + " :  " + fitness[biggest1]);
+
+        return fitness[biggest1];
+        //now we have the max fitness!
+        //now we need nTests to be passed here
+
+
+    }
+
+    public void initializeIterationHistory(int nTests) {
+
+        iterationResults = new Vector<Integer>();
+    }
+
+    public void addToHistory(int index, int highestVal) {
+
+        iterationResults.add(highestVal);
+    }
+
+    Vector<Integer> iterationResults;
 
 }
 
@@ -289,26 +348,44 @@ public class Home {
 
     public static void main(String[] args) {
 
-        knapsack k = new knapsack();
-        k.execute();
-        k.printArray();
-        k.printMap();
+        Scanner s = new Scanner(System.in);
 
-        //now we have initialized our data
-        //and we want to start crossing over its members
-        k.calculateFitness();
-        k.printFitness();
-        System.out.println();
-        System.out.println("NOW FOR SELECTION");
-        System.out.println();
+        int nTests = s.nextInt();
+        int maxFitnessForThisTest = 0;
+        int[] results = new int[nTests];
+        for (int i = 0; i < nTests; i++) {
+            knapsack k = new knapsack();
+            k.initializeIterationHistory(nTests);  //redundant but works
+            k.execute();
+            k.printArray();
+            k.printMap();
+            k.calculateFitness();
+            k.printFitness();
+            System.out.println();
 
-        int numberOfIterations = 1;
-        int c = 0;
-        while (c < numberOfIterations) {
-            k.selection();
-            k.crossing();
-            c++;
+            System.out.println("\nSELECTION\nCROSSOVER\nMUTATION\n\n");
+            int nIterations = 2000;
+            for (int j = 0; j < nIterations; j++) {
 
+                k.selection();
+                k.crossing();
+                k.mutate();
+                k.reInsert();
+                k.calculateFitness();
+                k.addToHistory(j, k.fitness[k.biggest1]);
+            }
+
+            maxFitnessForThisTest = 0;
+            for (int t : k.iterationResults) //This loop gets the highest fitness for this test
+            {
+                if (t > maxFitnessForThisTest)
+                    maxFitnessForThisTest = t;
+            }
+            results[i] = maxFitnessForThisTest;
+        }
+
+        for (int i = 0; i < nTests; i++) {
+            System.out.println("Case " + i + " :  " + results[i]);
         }
 
     }
